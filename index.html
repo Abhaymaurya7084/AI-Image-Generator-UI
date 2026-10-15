@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PixelAI - Image Generator</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b0b13;
+      color: #f5f5ff;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 7%;
+      border-bottom: 1px solid #292938;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: bold;
+      color: #a78bfa;
+    }
+
+    .logo span {
+      color: white;
+    }
+
+    .tag {
+      color: #b7b4c9;
+      font-size: 13px;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 55px 20px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #21183c;
+      color: #c4b5fd;
+      padding: 9px 15px;
+      border-radius: 30px;
+      margin-bottom: 18px;
+      font-size: 13px;
+    }
+
+    h1 {
+      font-size: clamp(34px, 5vw, 55px);
+      margin-bottom: 15px;
+      letter-spacing: -1.5px;
+    }
+
+    h1 span {
+      background: linear-gradient(90deg, #a78bfa, #ec4899);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      color: #aaa8bd;
+      line-height: 1.7;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 24px;
+    }
+
+    .panel {
+      background: #141420;
+      border: 1px solid #292938;
+      padding: 25px;
+      border-radius: 18px;
+    }
+
+    .panel h2 {
+      font-size: 19px;
+      margin-bottom: 22px;
+    }
+
+    label {
+      display: block;
+      margin: 19px 0 10px;
+      font-size: 13px;
+      color: #dedbea;
+    }
+
+    textarea, select {
+      width: 100%;
+      background: #0c0c16;
+      color: white;
+      border: 1px solid #343347;
+      border-radius: 10px;
+      padding: 13px;
+      font: inherit;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 125px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    textarea:focus, select:focus {
+      border-color: #a78bfa;
+    }
+
+    .hint {
+      color: #858398;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .generate-btn {
+      width: 100%;
+      padding: 15px;
+      margin-top: 23px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #7c3aed, #db2777);
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .generate-btn:hover {
+      opacity: 0.85;
+      transform: translateY(-1px);
+    }
+
+    .generate-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .example {
+      background: #222132;
+      color: #d2cde7;
+      border: 1px solid #38354d;
+      padding: 8px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .example:hover {
+      border-color: #a78bfa;
+    }
+
+    .preview {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .preview-top h2 {
+      margin: 0;
+    }
+
+    .status {
+      color: #b7b4c9;
+      font-size: 12px;
+    }
+
+    .image-area {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #0b0b13;
+      border: 1px dashed #454158;
+      border-radius: 13px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .image-area img {
+      display: none;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 25px;
+      color: #9996ae;
+    }
+
+    .empty .icon {
+      font-size: 55px;
+      margin-bottom: 15px;
+    }
+
+    .empty h3 {
+      color: #eeeafa;
+      margin-bottom: 10px;
+    }
+
+    .empty p {
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .loader {
+      display: none;
+      text-align: center;
+      color: #c4b5fd;
+      line-height: 2;
+    }
+
+    .spinner {
+      width: 35px;
+      height: 35px;
+      border: 3px solid #343047;
+      border-top-color: #c4b5fd;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .download-btn {
+      display: none;
+      text-align: center;
+      text-decoration: none;
+      color: white;
+      background: #29243c;
+      border: 1px solid #49405f;
+      padding: 13px;
+      margin-top: 16px;
+      border-radius: 10px;
+    }
+
+    .download-btn:hover {
+      background: #3a3055;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      border-top: 1px solid #292938;
+      color: #858398;
+      font-size: 12px;
+    }
+
+    @media (max-width: 760px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        padding-top: 35px;
+      }
+
+      header {
+        padding: 20px;
+      }
+
+      .tag {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">✦ Pixel<span>AI</span></div>
+    <div class="tag">Imagine it. Create it.</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="badge">✦ AI CREATIVE STUDIO</div>
+      <h1>Turn Your Ideas Into <span>Art.</span></h1>
+      <p>Describe your imagination and explore a world of creativity.</p>
+    </section>
+
+    <section class="workspace">
+
+      <div class="panel">
+        <h2>Create your image</h2>
+
+        <label for="prompt">Image description</label>
+        <textarea id="prompt"
+          placeholder="A futuristic city in the clouds at sunset..."></textarea>
+
+        <div class="hint">Be descriptive for better creative results.</div>
+
+        <div class="examples">
+          <button class="example" data-prompt="A magical forest with glowing flowers">
+            🌲 Magical Forest
+          </button>
+          <button class="example" data-prompt="A futuristic neon cyberpunk city at night">
+            🌃 Cyberpunk City
+          </button>
+          <button class="example" data-prompt="A beautiful mountain landscape at sunrise">
+            🏔️ Mountain View
+          </button>
+        </div>
+
+        <label for="style">Art style</label>
+        <select id="style">
+          <option value="realistic">Photorealistic</option>
+          <option value="anime">Anime</option>
+          <option value="fantasy">Fantasy Art</option>
+          <option value="digital">Digital Art</option>
+        </select>
+
+        <label for="size">Image size</label>
+        <select id="size">
+          <option value="square">Square (1:1)</option>
+          <option value="landscape">Landscape (4:3)</option>
+          <option value="portrait">Portrait (3:4)</option>
+        </select>
+
+        <button class="generate-btn" id="generateBtn">
+          ✨ Generate Image
+        </button>
+      </div>
+
+      <div class="panel preview">
+        <div class="preview-top">
+          <h2>Your creation</h2>
+          <span class="status" id="status">Ready to create</span>
+        </div>
+
+        <div class="image-area" id="imageArea">
+          <div class="empty" id="empty">
+            <div class="icon">🎨</div>
+            <h3>Your canvas awaits</h3>
+            <p>Enter a prompt and click Generate Image<br>
+              to see your preview here.</p>
+          </div>
+
+          <div class="loader" id="loader">
+            <div class="spinner"></div>
+            Creating your preview...
+          </div>
+
+          <img id="resultImage" alt="Generated image preview">
+        </div>
+
+        <a id="downloadBtn" class="download-btn"
+           href="#" download="pixelai-creation.jpg">
+          ↓ Download Image
+        </a>
+      </div>
+
+    </section>
+  </main>
+
+  <footer>
+    PixelAI Creative Studio · Frontend Demo
+  </footer>
+
+  <script>
+    const promptInput = document.getElementById("prompt");
+    const styleSelect = document.getElementById("style");
+    const sizeSelect = document.getElementById("size");
+    const generateBtn = document.getElementById("generateBtn");
+    const resultImage = document.getElementById("resultImage");
+    const empty = document.getElementById("empty");
+    const loader = document.getElementById("loader");
+    const status = document.getElementById("status");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const imageArea = document.getElementById("imageArea");
+
+    const sampleImages = {
+      realistic:
+        "photo-1470770841072-f978cf4d019e",
+      anime:
+        "photo-1518709268805-4e9042af9f23",
+      fantasy:
+        "photo-1511497584788-876760111969",
+      digital:
+        "photo-1519608487953-e999c86e7455"
+    };
+
+    document.querySelectorAll(".example").forEach(button => {
+      button.addEventListener("click", () => {
+        promptInput.value = button.dataset.prompt;
+      });
+    });
+
+    sizeSelect.addEventListener("change", () => {
+      const sizes = {
+        square: "1 / 1",
+        landscape: "4 / 3",
+        portrait: "3 / 4"
+      };
+
+      imageArea.style.aspectRatio = sizes[sizeSelect.value];
+    });
+
+    generateBtn.addEventListener("click", () => {
+      const prompt = promptInput.value.trim();
+
+      if (!prompt) {
+        alert("Please enter an image description first!");
+        promptInput.focus();
+        return;
+      }
+
+      generateBtn.disabled = true;
+      generateBtn.textContent = "Generating...";
+      status.textContent = "Preparing preview...";
+      empty.style.display = "none";
+      resultImage.style.display = "none";
+      downloadBtn.style.display = "none";
+      loader.style.display = "block";
+
+      const photoId = sampleImages[styleSelect.value];
+
+      // DEMO ONLY: loads a sample photo, not an AI-generated image.
+      const imageUrl =
+        "https://images.unsplash.com/" + photoId +
+        "?auto=format&fit=crop&w=1000&q=85";
+
+      resultImage.onload = () => {
+        loader.style.display = "none";
+        resultImage.style.display = "block";
+
+        downloadBtn.href = imageUrl;
+        downloadBtn.style.display = "block";
+        downloadBtn.textContent = "↓ Download Sample Image";
+
+        status.textContent = "Sample preview ready";
+        generateBtn.disabled = false;
+        generateBtn.textContent = "✨ Generate Image";
+      };
+
+      resultImage.onerror = () => {
+        loader.style.display = "none";
+        empty.style.display = "block";
+        status.textContent = "Preview unavailable";
+        generateBtn.disabled = false;
+        generateBtn.textContent = "✨ Generate Image";
+        alert("Image could not load. Please check your internet connection.");
+      };
+
+      resultImage.src = imageUrl;
+    });
+  </script>
+
+</body>
+</html>
